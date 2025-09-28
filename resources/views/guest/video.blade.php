@@ -30,7 +30,7 @@
                 <!-- 動画情報 -->
                 <div class="lg:col-span-2">
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg sticky top-6">
-                        <div class="p-6">
+                        <div class="p-6 flex flex-col">
                             @if($video->youtube_video_id)
                                 <!-- YouTube埋め込みプレイヤー -->
                                 <div id="video-player" class="mb-4">
@@ -74,7 +74,7 @@
                             @endif
 
                             <!-- 基本情報 -->
-                            <div class="space-y-2 text-sm mb-4">
+                            <div class="space-y-2 text-sm mb-4 order-first lg:order-none">
                                 @if($video->video_type === 'short' || ($video->playlists && $video->playlists->count() > 0))
                                     <div>
                                         <div class="flex flex-wrap gap-2">
@@ -102,7 +102,7 @@
                             </div>
                             <!-- 統計情報 -->
                             @if($video->view_count || $video->like_count || $video->comment_count)
-                                <div class="mb-4 grid grid-cols-3 gap-2">
+                                <div class="mb-4 grid grid-cols-3 gap-2 order-first lg:order-none">
                                     @if($video->view_count)
                                         <div class="text-center p-2 bg-red-50 rounded-lg">
                                             <div class="flex items-center justify-center mb-1">
@@ -120,7 +120,7 @@
                                             </div>
                                             <div class="text-xs font-medium text-blue-700">{{ number_format($video->like_count) }}
                                             </div>
-                                            <div class="text-xs text-blue-600">いいね</div>
+                                            <div class="text-xs text-blue-600">高評価</div>
                                         </div>
                                     @endif
                                     @if($video->comment_count)
@@ -140,6 +140,48 @@
                             <!-- 説明文 -->
                             @if($video->description)
                                 <div class="border-t pt-4">
+                                    <!-- モバイル向け：説明文の上に折りたたみ式の字幕エリアを追加 -->
+                                    <div class="block lg:hidden mb-4">
+                                        <button onclick="toggleMobileSubtitles()"
+                                            class="flex items-center justify-between w-full text-left">
+                                            <span class="font-medium text-gray-700">字幕</span>
+                                            <i id="mobile-subtitles-icon"
+                                                class="fa-solid fa-chevron-down text-gray-400 transition-transform duration-200"></i>
+                                        </button>
+                                        <div id="mobile-subtitles-content" class="hidden mt-2">
+                                            <div class="max-h-64 overflow-y-auto space-y-3 pr-2">
+                                                @foreach($dialogues as $dialogue)
+                                                    <div id="mobile-dialogue-{{ $dialogue->id }}"
+                                                        class="border-l-4 border-teal-600 pl-4 py-2 pr-2 hover:bg-gray-50 transition-colors">
+                                                        <div class="flex items-center justify-between mb-2">
+                                                            <div class="flex items-center space-x-2">
+                                                                <span class="text-sm font-medium text-teal-800">
+                                                                    {{ floor($dialogue->timestamp / 60) }}:{{ sprintf('%02d', $dialogue->timestamp % 60) }}
+                                                                </span>
+                                                                @if($dialogue->speaker)
+                                                                    <span
+                                                                        class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-20 text-amber-800">
+                                                                        <i class="fa-solid fa-user mr-1"></i>
+                                                                        {{ $dialogue->speaker }}
+                                                                    </span>
+                                                                @endif
+                                                            </div>
+                                                            @if($video->youtube_video_id)
+                                                                <button type="button" onclick="seekToTime({{ $dialogue->timestamp }})"
+                                                                    class="text-xs text-gray-500 hover:text-indigo-600 flex items-center cursor-pointer transition-colors">
+                                                                    <i class="fa-solid fa-play mr-1"></i>
+                                                                    再生
+                                                                </button>
+                                                            @endif
+                                                        </div>
+                                                        <div class="text-sm text-gray-800 leading-relaxed">
+                                                            {{ $dialogue->dialogue }}
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
                                     <button onclick="toggleDescription()"
                                         class="flex items-center justify-between w-full text-left">
                                         <span class="font-medium text-gray-700">説明文</span>
@@ -166,7 +208,7 @@
                 </div>
 
                 <!-- 字幕 -->
-                <div class="lg:col-span-1">
+                <div class="lg:col-span-1 hidden lg:block">
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div class="p-6">
                             <h3 class="font-semibold text-lg text-gray-900 mb-4">
@@ -174,10 +216,10 @@
                             </h3>
 
                             @if($dialogues->count() > 0)
-                                <div class="space-y-4">
+                                <div class=" max-h-96 overflow-y-auto space-y-4 pr-2">
                                     @foreach($dialogues as $dialogue)
                                         <div id="dialogue-{{ $dialogue->id }}"
-                                            class="border-l-4 border-teal-600 pl-4 py-2 hover:bg-gray-50 transition-colors">
+                                            class="border-l-4 border-teal-600 pl-4 py-2 pr-2 hover:bg-gray-50 transition-colors">
                                             <div class="flex items-center justify-between mb-2">
                                                 <div class="flex items-center space-x-2">
                                                     <span class="text-sm font-medium text-teal-800">
@@ -251,6 +293,28 @@
             }
         });
 
+        // ページを離れる時のクリーンアップ
+        window.addEventListener('beforeunload', function () {
+            stopSubtitleTracking();
+        });
+
+        // ページが非表示になった時も同期を停止
+        document.addEventListener('visibilitychange', function () {
+            if (document.hidden) {
+                stopSubtitleTracking();
+            } else if (playerReady && player) {
+                // ページが再表示された時に同期を再開
+                try {
+                    const state = player.getPlayerState();
+                    if (state === YT.PlayerState.PLAYING) {
+                        startSubtitleTracking();
+                    }
+                } catch (e) {
+                    console.log('Error checking player state on visibility change:', e);
+                }
+            }
+        });
+
         // 説明文の展開/折りたたみ機能
         function toggleDescription() {
             const content = document.getElementById('description-content');
@@ -270,6 +334,24 @@
         // YouTube Player API変数
         let player;
         let playerReady = false;
+        let currentHighlightedDialogue = null;
+        let subtitleTrackingInterval = null;
+        // モバイル用の字幕追跡状態
+        let mobileSubtitlesOpen = false;
+        let mobileHighlightedDialogue = null;
+
+        // 字幕データを配列として準備
+        const dialogues = [
+            @foreach($dialogues as $dialogue)
+                                                                                                                                {
+                    id: {{ $dialogue->id }},
+                    timestamp: {{ $dialogue->timestamp }},
+                    endTime: {{ $dialogue->timestamp + 5 }}, // 仮で5秒後を終了時刻とする（実際の終了時刻があれば使用）
+                    speaker: @json($dialogue->speaker),
+                    text: @json($dialogue->dialogue)
+                },
+            @endforeach
+                                                                ];
 
         // YouTube Player APIが読み込まれた時の初期化
         function onYouTubeIframeAPIReady() {
@@ -288,17 +370,173 @@
                         'onReady': function (event) {
                             playerReady = true;
                             console.log('YouTube Player ready');
+                            // 字幕の同期開始
+                            startSubtitleTracking();
+                        },
+                        'onStateChange': function (event) {
+                            // 再生状態に応じて字幕同期を制御
+                            if (event.data === YT.PlayerState.PLAYING) {
+                                startSubtitleTracking();
+                            } else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
+                                stopSubtitleTracking();
+                            }
                         },
                         'onError': function (event) {
                             console.error('YouTube Player error:', event.data);
                             playerReady = false;
+                            stopSubtitleTracking();
                         }
                     }
                 });
             }
         }
 
+        // 字幕の同期機能
+        function startSubtitleTracking() {
+            if (subtitleTrackingInterval) {
+                clearInterval(subtitleTrackingInterval);
+            }
 
+            subtitleTrackingInterval = setInterval(() => {
+                if (playerReady && player && typeof player.getCurrentTime === 'function') {
+                    try {
+                        const currentTime = Math.floor(player.getCurrentTime());
+                        updateCurrentSubtitle(currentTime);
+                    } catch (error) {
+                        console.error('Error getting current time:', error);
+                    }
+                }
+            }, 500); // 0.5秒ごとに更新
+        }
+
+        function stopSubtitleTracking() {
+            if (subtitleTrackingInterval) {
+                clearInterval(subtitleTrackingInterval);
+                subtitleTrackingInterval = null;
+            }
+        }
+
+        function updateCurrentSubtitle(currentTime) {
+            // 現在の時刻に該当する字幕を見つける
+            let currentDialogue = null;
+
+            for (let i = 0; i < dialogues.length; i++) {
+                const dialogue = dialogues[i];
+                let nextDialogue = i < dialogues.length - 1 ? dialogues[i + 1] : null;
+
+                // 現在の字幕の開始時刻以降で、次の字幕の開始時刻未満の場合
+                if (currentTime >= dialogue.timestamp &&
+                    (!nextDialogue || currentTime < nextDialogue.timestamp)) {
+                    currentDialogue = dialogue;
+                    break;
+                }
+            }
+
+            // ハイライトを更新
+            if (currentDialogue && currentDialogue.id !== currentHighlightedDialogue) {
+                // 前のハイライトを削除
+                if (currentHighlightedDialogue) {
+                    const prevElement = document.getElementById(`dialogue-${currentHighlightedDialogue}`);
+                    if (prevElement) {
+                        prevElement.classList.remove('bg-teal-100', 'border-teal-400', 'shadow-md');
+                        prevElement.classList.add('border-teal-600');
+                    }
+                }
+
+                // 新しいハイライトを追加
+                const currentElement = document.getElementById(`dialogue-${currentDialogue.id}`);
+                if (currentElement) {
+                    currentElement.classList.remove('border-teal-600');
+                    currentElement.classList.add('bg-teal-100', 'border-teal-400', 'shadow-md');
+
+                    // スムーズにスクロール
+                    currentElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center',
+                        inline: 'nearest'
+                    });
+                }
+
+                currentHighlightedDialogue = currentDialogue.id;
+
+                // モバイル側のハイライト／スクロール（モバイル領域が存在し、展開されている場合）
+                try {
+                    const mobileContainer = document.getElementById('mobile-subtitles-content');
+                    if (mobileContainer && !mobileContainer.classList.contains('hidden')) {
+                        // 前のモバイルハイライトを削除
+                        if (mobileHighlightedDialogue) {
+                            const prevMobile = document.getElementById(`mobile-dialogue-${mobileHighlightedDialogue}`);
+                            if (prevMobile) {
+                                prevMobile.classList.remove('bg-teal-100', 'border-teal-400', 'shadow-md');
+                                prevMobile.classList.add('border-teal-600');
+                            }
+                        }
+
+                        const mobileElement = document.getElementById(`mobile-dialogue-${currentDialogue.id}`);
+                        if (mobileElement) {
+                            mobileElement.classList.remove('border-teal-600');
+                            mobileElement.classList.add('bg-teal-100', 'border-teal-400', 'shadow-md');
+                            // モバイル内のスクロールを行う（要素がスクロールコンテナ内ならコンテナがスクロールされる）
+                            mobileElement.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+                            mobileHighlightedDialogue = currentDialogue.id;
+                        }
+                    }
+                } catch (e) {
+                    console.log('mobile highlight error', e);
+                }
+            } else if (!currentDialogue && currentHighlightedDialogue) {
+                // どの字幕にも該当しない場合はハイライトを削除
+                const prevElement = document.getElementById(`dialogue-${currentHighlightedDialogue}`);
+                if (prevElement) {
+                    prevElement.classList.remove('bg-teal-100', 'border-teal-400', 'shadow-md');
+                    prevElement.classList.add('border-teal-600');
+                }
+                currentHighlightedDialogue = null;
+                // モバイル側のハイライトもクリア
+                if (mobileHighlightedDialogue) {
+                    const prevMobile = document.getElementById(`mobile-dialogue-${mobileHighlightedDialogue}`);
+                    if (prevMobile) {
+                        prevMobile.classList.remove('bg-teal-100', 'border-teal-400', 'shadow-md');
+                        prevMobile.classList.add('border-teal-600');
+                    }
+                    mobileHighlightedDialogue = null;
+                }
+            }
+        }
+
+        // モバイルの折りたたみ字幕をトグル（展開中は自動スクロール）
+        function toggleMobileSubtitles() {
+            const content = document.getElementById('mobile-subtitles-content');
+            const icon = document.getElementById('mobile-subtitles-icon');
+
+            if (!content) return;
+
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                if (icon) icon.classList.add('rotate-180');
+                mobileSubtitlesOpen = true;
+                // 開いた直後に現在時刻の字幕位置にスクロール
+                try {
+                    const currentTime = playerReady && player && typeof player.getCurrentTime === 'function' ? Math.floor(player.getCurrentTime()) : 0;
+                    updateCurrentSubtitle(currentTime);
+                } catch (e) {
+                    console.log('error updating mobile subtitles on open', e);
+                }
+            } else {
+                content.classList.add('hidden');
+                if (icon) icon.classList.remove('rotate-180');
+                mobileSubtitlesOpen = false;
+                // 折りたたみ時はモバイルのハイライトをクリア
+                if (mobileHighlightedDialogue) {
+                    const prevMobile = document.getElementById(`mobile-dialogue-${mobileHighlightedDialogue}`);
+                    if (prevMobile) {
+                        prevMobile.classList.remove('bg-teal-100', 'border-teal-400', 'shadow-md');
+                        prevMobile.classList.add('border-teal-600');
+                    }
+                    mobileHighlightedDialogue = null;
+                }
+            }
+        }
 
         // シーク機能（+5秒/-5秒）
         function seekVideo(seconds) {
@@ -310,6 +548,14 @@
                     const newTime = Math.max(0, currentTime + seconds);
                     console.log('Seeking from', currentTime, 'to', newTime);
                     player.seekTo(newTime, true);
+
+                    // シーク後に字幕を即座に更新
+                    setTimeout(() => {
+                        if (playerReady && player) {
+                            const updatedTime = Math.floor(player.getCurrentTime());
+                            updateCurrentSubtitle(updatedTime);
+                        }
+                    }, 1000);
                 } catch (error) {
                     console.error('Error in seekVideo:', error);
                     // APIが利用できない場合は、新しいタブでYouTubeを開く
@@ -344,7 +590,7 @@
                     console.log('Seeking to:', timestamp);
                     player.seekTo(timestamp, true);
 
-                    // 少し待ってから再生状態をチェック
+                    // 少し待ってから再生状態をチェックし、字幕も更新
                     setTimeout(() => {
                         try {
                             const state = player.getPlayerState();
@@ -353,6 +599,9 @@
                             if (state !== 1) { // 1 = playing
                                 player.playVideo();
                             }
+
+                            // 字幕を即座に更新
+                            updateCurrentSubtitle(timestamp);
                         } catch (e) {
                             console.log('Error checking player state:', e);
                         }

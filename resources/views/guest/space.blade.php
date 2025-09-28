@@ -532,6 +532,10 @@
         let currentOffset = {{ $recentVideos->count() }};
         let isLoading = false;
         let hasMoreVideos = true;
+        // 全件数（サーバーサイドで計算済み。未定義の場合は0）
+        const totalVideosCount = {{ isset($totalCount) ? $totalCount : 0 }};
+        // 検索条件が存在するか（サーバーサイドで判定済み。未定義の場合は false）
+        const hasSearchConditionsFlag = {{ (isset($hasSearchConditions) && $hasSearchConditions) ? 'true' : 'false' }};
 
         function switchView(view) {
             // URLパラメータに表示モードを保存
@@ -647,26 +651,26 @@
             const buttonClasses = isCard ? 'absolute top-2 right-2 bg-black bg-opacity-70 text-white p-2 rounded hover:bg-opacity-90 transition-opacity' : 'absolute top-1 right-1 bg-black bg-opacity-70 text-white p-1 rounded text-xs hover:bg-opacity-90 transition-opacity';
 
             return `
-                                <div class="flex-shrink-0 ${isCard ? 'w-full sm:w-48 mb-3 sm:mb-0 ' : ''}relative cursor-pointer"
-                                    onclick="event.stopPropagation(); window.open('https://www.youtube.com/watch?v=${data.videoId}', '_blank');"
-                                    title="YouTubeで動画を開く">
-                                    ${data.thumbnailUrl ?
+                                        <div class="flex-shrink-0 ${isCard ? 'w-full sm:w-48 mb-3 sm:mb-0 ' : ''}relative cursor-pointer"
+                                            onclick="event.stopPropagation(); window.open('https://www.youtube.com/watch?v=${data.videoId}', '_blank');"
+                                            title="YouTubeで動画を開く">
+                                            ${data.thumbnailUrl ?
                     `<img src="${data.thumbnailUrl}" alt="${data.title}" class="${sizeClasses} object-cover rounded">` :
                     `<div class="${sizeClasses} bg-gray-200 flex items-center justify-center rounded">
-                                            <i class="fa-solid fa-video text-gray-400 ${isCard ? 'text-2xl' : ''}"></i>
-                                        </div>`
+                                                    <i class="fa-solid fa-video text-gray-400 ${isCard ? 'text-2xl' : ''}"></i>
+                                                </div>`
                 }
-                                    <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 opacity-0 hover:opacity-100 transition-opacity rounded">
-                                        <i class="fa-solid fa-play text-white ${playIconSize}"></i>
-                                    </div>
-                                    <button type="button"
-                                        class="${buttonClasses}"
-                                        onclick="event.stopPropagation(); window.open('https://www.youtube.com/watch?v=${data.videoId}', '_blank');"
-                                        title="YouTubeで開く">
-                                        <i class="fa-solid fa-external-link-alt"></i>
-                                    </button>
-                                </div>
-                            `;
+                                            <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 opacity-0 hover:opacity-100 transition-opacity rounded">
+                                                <i class="fa-solid fa-play text-white ${playIconSize}"></i>
+                                            </div>
+                                            <button type="button"
+                                                class="${buttonClasses}"
+                                                onclick="event.stopPropagation(); window.open('https://www.youtube.com/watch?v=${data.videoId}', '_blank');"
+                                                title="YouTubeで開く">
+                                                <i class="fa-solid fa-external-link-alt"></i>
+                                            </button>
+                                        </div>
+                                    `;
         }
 
         // バッジ群のHTML生成
@@ -680,18 +684,18 @@
             // 字幕バッジ
             if (data.hasSubtitles) {
                 const subtitleBadge = `<span class="inline-flex items-center px-2 ${isCard ? 'sm:px-2.5' : ''} py-${isCard ? '0.5' : '1'} rounded-full text-xs font-medium bg-teal-100 text-teal-800" title="字幕あり (${data.subtitleCount}件)">
-                                    <i class="fa-solid fa-closed-captioning mr-1"></i>
-                                    <span>${isCard ? '字幕' : '字幕'}</span>
-                                </span>`;
+                                            <i class="fa-solid fa-closed-captioning mr-1"></i>
+                                            <span>${isCard ? '字幕' : '字幕'}</span>
+                                        </span>`;
                 badges.push(subtitleBadge);
             }
 
             // ショートバッジ
             if (data.isShort) {
                 const shortBadge = `<span class="inline-flex items-center px-2 ${isCard ? 'sm:px-2.5' : ''} py-${isCard ? '0.5' : '1'} rounded-full text-xs font-medium bg-pink-100 text-pink-800">
-                                    ${isCard ? '<i class="fa-solid fa-wand-magic-sparkles mr-1"></i>' : ''}
-                                    <span>ショート</span>
-                                </span>`;
+                                            ${isCard ? '<i class="fa-solid fa-wand-magic-sparkles mr-1"></i>' : ''}
+                                            <span>ショート</span>
+                                        </span>`;
                 badges.push(shortBadge);
             }
 
@@ -700,12 +704,12 @@
                 const playlistBadges = data.playlists.slice(0, maxPlaylists).map(playlist => {
                     const titleLimit = isCard ? 20 : 15;
                     return `<button type="button"
-                                        onclick="searchByPlaylist(event, '${playlist.id}', '${playlist.title.replace(/'/g, '\\\'')}')"
-                                        class="inline-flex items-center px-2 ${isCard ? 'sm:px-2.5' : ''} py-${isCard ? '0.5' : '1'} rounded-full text-xs font-medium bg-purple-100 text-purple-800 hover:bg-purple-200 transition-colors"
-                                        title="この再生リストで検索">
-                                        <i class="fa-solid fa-list mr-1"></i>
-                                        <span>${playlist.title.length > titleLimit ? playlist.title.substring(0, titleLimit) + '...' : playlist.title}</span>
-                                    </button>`;
+                                                onclick="searchByPlaylist(event, '${playlist.id}', '${playlist.title.replace(/'/g, '\\\'')}')"
+                                                class="inline-flex items-center px-2 ${isCard ? 'sm:px-2.5' : ''} py-${isCard ? '0.5' : '1'} rounded-full text-xs font-medium bg-purple-100 text-purple-800 hover:bg-purple-200 transition-colors"
+                                                title="この再生リストで検索">
+                                                <i class="fa-solid fa-list mr-1"></i>
+                                                <span>${playlist.title.length > titleLimit ? playlist.title.substring(0, titleLimit) + '...' : playlist.title}</span>
+                                            </button>`;
                 });
                 badges.push(...playlistBadges);
 
@@ -726,9 +730,9 @@
             if (data.viewCount) {
                 const statHTML = isCard ?
                     `<span class="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 border border-red-200">
-                                        <i class="fa-solid fa-eye mr-1"></i>
-                                        <span>${data.viewCount}</span>
-                                    </span>` :
+                                                <i class="fa-solid fa-eye mr-1"></i>
+                                                <span>${data.viewCount}</span>
+                                            </span>` :
                     `<span class="flex items-center text-red-600"><i class="fa-solid fa-eye mr-1"></i>${data.viewCount}</span>`;
                 stats.push(statHTML);
             }
@@ -736,9 +740,9 @@
             if (data.likeCount) {
                 const statHTML = isCard ?
                     `<span class="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
-                                        <i class="fa-solid fa-thumbs-up mr-1"></i>
-                                        <span>${data.likeCount}</span>
-                                    </span>` :
+                                                <i class="fa-solid fa-thumbs-up mr-1"></i>
+                                                <span>${data.likeCount}</span>
+                                            </span>` :
                     `<span class="flex items-center text-blue-600"><i class="fa-solid fa-thumbs-up mr-1"></i>${data.likeCount}</span>`;
                 stats.push(statHTML);
             }
@@ -746,9 +750,9 @@
             if (data.commentCount) {
                 const statHTML = isCard ?
                     `<span class="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 border border-green-200">
-                                        <i class="fa-solid fa-comment mr-1"></i>
-                                        <span>${data.commentCount}</span>
-                                    </span>` :
+                                                <i class="fa-solid fa-comment mr-1"></i>
+                                                <span>${data.commentCount}</span>
+                                            </span>` :
                     `<span class="flex items-center text-green-600"><i class="fa-solid fa-comment mr-1"></i>${data.commentCount}</span>`;
                 stats.push(statHTML);
             }
@@ -757,96 +761,96 @@
 
             return isCard ?
                 `<div class="mt-2 space-y-1">
-                                    <div class="flex items-center flex-wrap gap-1 sm:gap-2">
-                                        ${stats.join('')}
-                                    </div>
-                                </div>` :
+                                            <div class="flex items-center flex-wrap gap-1 sm:gap-2">
+                                                ${stats.join('')}
+                                            </div>
+                                        </div>` :
                 `<div class="mt-1 flex items-center space-x-3 text-xs">
-                                    ${stats.join('')}
-                                </div>`;
+                                            ${stats.join('')}
+                                        </div>`;
         }
 
         // メタ情報（日付・チャンネル）のHTML生成
         function generateMetaHTML(data, isCard = false) {
             return isCard ?
                 `<div class="text-xs sm:text-sm text-gray-500 mt-2 sm:mt-3 space-y-1">
-                                    <p class="flex items-center">
-                                        <i class="fa-solid fa-calendar-alt w-3 sm:w-4 mr-1 text-center flex-shrink-0"></i>
-                                        <span>${data.date}</span>
-                                    </p>
-                                    <p class="flex items-center truncate">
-                                        <i class="fa-solid fa-tv w-3 sm:w-4 mr-1 text-center flex-shrink-0"></i>
-                                        <span class="truncate">${data.channel}</span>
-                                    </p>
-                                </div>` :
+                                            <p class="flex items-center">
+                                                <i class="fa-solid fa-calendar-alt w-3 sm:w-4 mr-1 text-center flex-shrink-0"></i>
+                                                <span>${data.date}</span>
+                                            </p>
+                                            <p class="flex items-center truncate">
+                                                <i class="fa-solid fa-tv w-3 sm:w-4 mr-1 text-center flex-shrink-0"></i>
+                                                <span class="truncate">${data.channel}</span>
+                                            </p>
+                                        </div>` :
                 `<div class="mt-1 flex items-center space-x-4 text-xs text-gray-500">
-                                    <span class="flex items-center">
-                                        <i class="fa-solid fa-calendar-alt mr-1"></i>
-                                        ${data.date}
-                                    </span>
-                                    <span class="flex items-center truncate">
-                                        <i class="fa-solid fa-tv mr-1"></i>
-                                        ${data.channel}
-                                    </span>
-                                </div>`;
+                                            <span class="flex items-center">
+                                                <i class="fa-solid fa-calendar-alt mr-1"></i>
+                                                ${data.date}
+                                            </span>
+                                            <span class="flex items-center truncate">
+                                                <i class="fa-solid fa-tv mr-1"></i>
+                                                ${data.channel}
+                                            </span>
+                                        </div>`;
         }
 
         // ===== メイン生成関数 =====
 
         function generateListHTML(data) {
             return `
-                                <div class="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                                    <a href="${data.href}" class="block">
-                                        <div class="flex items-center p-3 hover:bg-gray-50">
-                                            ${generateThumbnailHTML(data, false)}
-                                            <div class="ml-4 flex-1 min-w-0">
-                                                <div class="flex items-start justify-between">
-                                                    <div class="flex-1 min-w-0">
-                                                        <h3 class="font-semibold text-sm text-gray-900 line-clamp-2 hover:text-blue-600 transition-colors">
-                                                            ${data.title}
-                                                        </h3>
-                                                        ${generateMetaHTML(data, false)}
-                                                        ${generateStatsHTML(data, false)}
-                                                        ${data.hasSubtitles ? `
-                                                            <div class="mt-1">
-                                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-teal-100 text-teal-800" title="字幕あり (${data.subtitleCount}件)">
-                                                                    <i class="fa-solid fa-closed-captioning mr-1"></i>
-                                                                    字幕 (${data.subtitleCount}件)
-                                                                </span>
+                                        <div class="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                                            <a href="${data.href}" class="block">
+                                                <div class="flex items-center p-3 hover:bg-gray-50">
+                                                    ${generateThumbnailHTML(data, false)}
+                                                    <div class="ml-4 flex-1 min-w-0">
+                                                        <div class="flex items-start justify-between">
+                                                            <div class="flex-1 min-w-0">
+                                                                <h3 class="font-semibold text-sm text-gray-900 line-clamp-2 hover:text-blue-600 transition-colors">
+                                                                    ${data.title}
+                                                                </h3>
+                                                                ${generateMetaHTML(data, false)}
+                                                                ${generateStatsHTML(data, false)}
+                                                                ${data.hasSubtitles ? `
+                                                                    <div class="mt-1">
+                                                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-teal-100 text-teal-800" title="字幕あり (${data.subtitleCount}件)">
+                                                                            <i class="fa-solid fa-closed-captioning mr-1"></i>
+                                                                            字幕 (${data.subtitleCount}件)
+                                                                        </span>
+                                                                    </div>
+                                                                ` : ''}
                                                             </div>
-                                                        ` : ''}
-                                                    </div>
-                                                    <div class="ml-4 flex flex-col items-end space-y-1 badge-area">
-                                                        ${generateBadgesHTML(data, false)}
+                                                            <div class="ml-4 flex flex-col items-end space-y-1 badge-area">
+                                                                ${generateBadgesHTML(data, false)}
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </a>
                                         </div>
-                                    </a>
-                                </div>
-                            `;
+                                    `;
         }
 
         function generateCardHTML(data) {
             return `
-                                <div class="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow relative">
-                                    <a href="${data.href}" class="block">
-                                        <div class="flex flex-col sm:flex-row items-start p-3 sm:p-4 hover:bg-gray-50">
-                                            ${generateThumbnailHTML(data, true)}
-                                            <div class="sm:ml-4 flex-1 min-w-0 w-full">
-                                                <h3 class="font-bold text-base sm:text-lg text-gray-900 line-clamp-2 leading-snug hover:text-blue-600 transition-colors">
-                                                    ${data.title}
-                                                </h3>
-                                                <div class="mt-2 flex flex-wrap items-center gap-1 sm:gap-2">
-                                                    ${generateBadgesHTML(data, true)}
+                                        <div class="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow relative">
+                                            <a href="${data.href}" class="block">
+                                                <div class="flex flex-col sm:flex-row items-start p-3 sm:p-4 hover:bg-gray-50">
+                                                    ${generateThumbnailHTML(data, true)}
+                                                    <div class="sm:ml-4 flex-1 min-w-0 w-full">
+                                                        <h3 class="font-bold text-base sm:text-lg text-gray-900 line-clamp-2 leading-snug hover:text-blue-600 transition-colors">
+                                                            ${data.title}
+                                                        </h3>
+                                                        <div class="mt-2 flex flex-wrap items-center gap-1 sm:gap-2">
+                                                            ${generateBadgesHTML(data, true)}
+                                                        </div>
+                                                        ${generateMetaHTML(data, true)}
+                                                        ${generateStatsHTML(data, true)}
+                                                    </div>
                                                 </div>
-                                                ${generateMetaHTML(data, true)}
-                                                ${generateStatsHTML(data, true)}
-                                            </div>
+                                            </a>
                                         </div>
-                                    </a>
-                                </div>
-                            `;
+                                    `;
         }
 
 
@@ -1088,6 +1092,16 @@
                 const totalVideos = {{ $space->videos()->count() }};
                 if (totalVideos <= {{ $recentVideos->count() }}) {
                     document.getElementById('load-more-container').style.display = 'none';
+                    hasMoreVideos = false;
+                }
+            }
+
+            // 検索が行われている場合、サーバーで計算した全件数と現在表示件数を比較して
+            // 追加のページがないと判定される場合はもっと見るボタンを非表示にする
+            if (hasSearchConditionsFlag) {
+                if (totalVideosCount <= {{ $recentVideos->count() }}) {
+                    const container = document.getElementById('load-more-container');
+                    if (container) container.style.display = 'none';
                     hasMoreVideos = false;
                 }
             }

@@ -187,8 +187,29 @@
                             </div>
                             <div class="md:col-span-3">
                                 <label for="dialogue" class="block text-sm font-medium text-gray-700">文字起こし</label>
-                                <input type="text" name="dialogue" id="dialogue" value="{{ old('dialogue') }}"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+                                <div class="mt-1 relative">
+                                    <input type="text" name="dialogue" id="dialogue" value="{{ old('dialogue') }}"
+                                        class="block w-full rounded-md border-gray-300 shadow-sm px-3 py-2" required>
+
+                                    <!-- 句読点・記号挿入ボタン（表示は入力欄の下、だがフローに影響させない） -->
+                                    <div class="absolute left-0 top-full mt-1 z-10 flex items-center gap-2">
+                                        <button type="button" onclick="insertPunctuationAtCursor('――')"
+                                            aria-label="二重ダッシュ挿入"
+                                            class="px-2 py-0.5 text-xs bg-gray-200 border border-gray-200 rounded hover:bg-gray-300">――</button>
+                                        <button type="button" onclick="insertPunctuationAtCursor('～')"
+                                            aria-label="波ダッシュ挿入"
+                                            class="px-2 py-0.5 text-xs bg-gray-200 border border-gray-200 rounded hover:bg-gray-300">～</button>
+                                        <button type="button" onclick="insertPunctuationAtCursor('？')"
+                                            aria-label="疑問符挿入"
+                                            class="px-2 py-0.5 text-xs bg-gray-200 border border-gray-200 rounded hover:bg-gray-300">？</button>
+                                        <button type="button" onclick="insertPunctuationAtCursor('！')"
+                                            aria-label="感嘆符挿入"
+                                            class="px-2 py-0.5 text-xs bg-gray-200 border border-gray-200 rounded hover:bg-gray-300">！</button>
+                                        <button type="button" onclick="insertPunctuationAtCursor('…')"
+                                            aria-label="三点リーダー挿入"
+                                            class="px-2 py-0.5 text-xs bg-gray-200 border border-gray-200 rounded hover:bg-gray-300">…</button>
+                                    </div>
+                                </div>
                                 @error('dialogue') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                             </div>
                             <div class="md:col-span-1 flex space-x-2">
@@ -205,7 +226,7 @@
                         </div>
 
                         {{-- 音声入力の注意書き --}}
-                        <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div class="mt-8 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                             <div class="flex items-start space-x-2">
                                 <i class="fa-solid fa-info-circle text-blue-600 mt-0.5 text-xs"></i>
                                 <div class="text-xs text-blue-800">
@@ -1357,5 +1378,30 @@
 
         // グローバル関数として定義（YouTube APIから呼ばれる）
         window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
+
+        // 句読点・記号をカーソル位置に挿入するユーティリティ
+        function insertPunctuationAtCursor(text) {
+            const input = document.getElementById('dialogue');
+            if (!input) return;
+
+            // フォーカスを移動して挿入位置を取得
+            input.focus();
+
+            // input 要素（type=text）の選択範囲に挿入
+            const start = input.selectionStart || 0;
+            const end = input.selectionEnd || 0;
+            const value = input.value || '';
+
+            const newValue = value.substring(0, start) + text + value.substring(end);
+            input.value = newValue;
+
+            // カーソル位置を挿入後の末尾に移動
+            const caretPos = start + text.length;
+            input.setSelectionRange(caretPos, caretPos);
+
+            // 変更を認識させるために input イベントを発火
+            const evt = new Event('input', { bubbles: true });
+            input.dispatchEvent(evt);
+        }
     </script>
 </x-app-layout>
