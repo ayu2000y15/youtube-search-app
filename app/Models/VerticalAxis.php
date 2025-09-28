@@ -17,6 +17,9 @@ class VerticalAxis extends Model
         'display_order',
     ];
 
+    // 明示的にテーブル名を指定（Eloquent の規約に従っているため必須ではないが明示的にする）
+    protected $table = 'vertical_axes';
+
     /**
      * この縦軸が属する年表を取得
      */

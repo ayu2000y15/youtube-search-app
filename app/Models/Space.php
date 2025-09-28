@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+use App\Models\Timeline;
+use App\Models\HistoryCategory;
 
 class Space extends Model
 {
@@ -125,5 +127,21 @@ class Space extends Model
     public function events(): HasMany
     {
         return $this->hasMany(Event::class);
+    }
+
+    /**
+     * このスペースに紐づく年表一覧を取得 (1対多)
+     */
+    public function timelines(): HasMany
+    {
+        return $this->hasMany(Timeline::class);
+    }
+
+    /**
+     * このスペースに紐づく年表カテゴリ一覧を取得 (1対多)
+     */
+    public function historyCategories(): HasMany
+    {
+        return $this->hasMany(HistoryCategory::class);
     }
 }

@@ -253,7 +253,7 @@ class SpaceController extends Controller
     public function show(Space $space)
     {
         // イベント情報と一緒に、開催日時とチケット販売情報も読み込む
-        $space->load('events.schedules', 'events.ticketSales');
+        $space->load('events.schedules', 'events.ticketSales', 'timelines');
 
         // イベントを最も早い公演日の昇順でソートする
         $space->events = $space->events->sortBy(function ($event) {

@@ -7,6 +7,9 @@ use App\Http\Controllers\VideoController;
 use App\Http\Controllers\DialogueController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\TimelineController;
+use App\Http\Controllers\HistoryCategoryController;
+use App\Http\Controllers\HistoryEntryController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -45,6 +48,15 @@ Route::middleware('auth')->group(function () {
     Route::resource('videos.dialogues', DialogueController::class)->except(['index', 'show'])->shallow();
     Route::post('/videos/{video}/dialogues/import', [DialogueController::class, 'import'])->name('videos.dialogues.import');
     Route::post('/dialogues/{dialogue}/update', [DialogueController::class, 'update'])->name('dialogues.update');
+
+    // 年表カテゴリ管理
+    Route::resource('spaces.history-categories', HistoryCategoryController::class)->shallow()->only(['index', 'store', 'update', 'destroy']);
+
+    // 年表管理
+    Route::resource('spaces.timelines', TimelineController::class)->shallow();
+
+    // 年表項目管理 (年表に紐づく)
+    Route::resource('timelines.history-entries', HistoryEntryController::class)->shallow()->except(['index']);
 });
 
 // ゲスト用ルート（認証不要）
