@@ -18,6 +18,7 @@
         crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <!-- Scripts -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
@@ -185,8 +186,8 @@
 
                     const alertDiv = document.createElement('div');
                     alertDiv.className = `px-4 py-3 rounded relative mb-4 ${type === 'success'
-                            ? 'bg-green-100 border border-green-400 text-green-700'
-                            : 'bg-red-100 border border-red-400 text-red-700'
+                        ? 'bg-green-100 border border-green-400 text-green-700'
+                        : 'bg-red-100 border border-red-400 text-red-700'
                         }`;
                     alertDiv.setAttribute('role', 'alert');
                     alertDiv.textContent = message;

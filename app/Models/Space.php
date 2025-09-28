@@ -23,6 +23,16 @@ class Space extends Model
         'slug',
         'visibility',
         'invite_token',
+        'related_urls',
+    ];
+
+    /**
+     * キャスト
+     *
+     * @var array
+     */
+    protected $casts = [
+        'related_urls' => 'array',
     ];
 
     /**
@@ -107,5 +117,13 @@ class Space extends Model
             2 => '全体公開',
             default => '不明',
         };
+    }
+
+    /**
+     * このスペースに紐づくイベント一覧を取得 (1対多)
+     */
+    public function events(): HasMany
+    {
+        return $this->hasMany(Event::class);
     }
 }

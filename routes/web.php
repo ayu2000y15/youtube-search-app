@@ -6,6 +6,7 @@ use App\Http\Controllers\ChannelController;
 use App\Http\Controllers\VideoController;
 use App\Http\Controllers\DialogueController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\EventController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -28,6 +29,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/channels/find-id', [ChannelController::class, 'findIdByUrl'])->name('channels.findId');
     Route::post('/spaces/{space}/channels/estimate-count', [ChannelController::class, 'estimateCount'])->name('channels.estimate-count');
     Route::resource('spaces.channels', ChannelController::class)->shallow();
+    Route::resource('spaces.events', EventController::class)->except(['index', 'show']);
 
     Route::get('/spaces/{space}/videos', [VideoController::class, 'index'])->name('videos.index');
     Route::get('/videos/{video}', [VideoController::class, 'show'])->name('videos.show');
