@@ -29,34 +29,33 @@
                     <div class="flex items-center">
                         <!-- Logo/Space Name -->
                         <div class="flex-shrink-0 flex items-center">
-                            <i class="fa-solid fa-tv text-indigo-600 text-xl mr-2"></i>
+                            <!-- Visibility Status -->
+                            <div class="ml-2 flex items-center">
+                                @if(isset($space))
+                                    <div class="flex items-center">
+                                        <span class="mr-2 px-2 sm:px-3 py-1 text-xs sm:text-sm rounded-full font-medium
+                                                                                @if($space->visibility === 2)
+                                                                                    bg-green-100 text-green-800
+                                                                                @else
+                                                                                    bg-yellow-100 text-yellow-800
+                                                                                @endif">
+                                            @if($space->visibility === 2)
+                                                <i class="fa-solid fa-globe"></i>
+                                                <span class="hidden ml-1 sm:inline">全体公開</span>
+                                            @else
+                                                <i class="fa-solid fa-link "></i>
+                                                <span class="hidden ml-1 sm:inline">限定公開</span>
+                                            @endif
+                                        </span>
+                                    </div>
+                                @endif
+                            </div>
                             <h1 class="text-xl font-bold text-gray-900 hidden sm:block">
                                 {{ $space->name ?? 'YouTube検索' }}
                             </h1>
-                            <h1 class="text-lg font-bold text-gray-900 sm:hidden truncate max-w-32">
+                            <h1 class="text-base font-bold text-gray-900 sm:hidden truncate max-w-40">
                                 {{ $space->name ?? 'YouTube検索' }}
                             </h1>
-                        </div>
-                        <!-- Visibility Status -->
-                        <div class="ml-2 flex items-center">
-                            @if(isset($space))
-                                <div class="flex items-center">
-                                    <span class="px-2 sm:px-3 py-1 text-xs sm:text-sm rounded-full font-medium
-                                                                            @if($space->visibility === 2)
-                                                                                bg-green-100 text-green-800
-                                                                            @else
-                                                                                bg-yellow-100 text-yellow-800
-                                                                            @endif">
-                                        @if($space->visibility === 2)
-                                            <i class="fa-solid fa-globe"></i>
-                                            <span class="hidden ml-1 sm:inline">全体公開</span>
-                                        @else
-                                            <i class="fa-solid fa-link "></i>
-                                            <span class="hidden ml-1 sm:inline">限定公開</span>
-                                        @endif
-                                    </span>
-                                </div>
-                            @endif
                         </div>
                     </div>
 
@@ -509,6 +508,45 @@
                 });
             }
         });
+    </script>
+
+    <!-- Back to Top Button -->
+    <button id="back-to-top" aria-label="トップへ戻る"
+        class="fixed right-4 bottom-6 z-50 w-12 h-12 rounded-full bg-indigo-600 text-white shadow-lg flex items-center justify-center transition-opacity duration-200 opacity-0 pointer-events-none">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+        </svg>
+    </button>
+
+    <script>
+        // Back to top behavior: show when scrolled down, hide at top
+        (function() {
+            const btn = document.getElementById('back-to-top');
+            if (!btn) return;
+
+            function updateVisibility() {
+                const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+                if (scrollY > 200) {
+                    btn.style.opacity = '1';
+                    btn.style.pointerEvents = 'auto';
+                } else {
+                    btn.style.opacity = '0';
+                    btn.style.pointerEvents = 'none';
+                }
+            }
+
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+
+            document.addEventListener('scroll', function() {
+                updateVisibility();
+            }, { passive: true });
+
+            // initialize
+            updateVisibility();
+        })();
     </script>
 
     @stack('scripts')

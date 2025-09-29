@@ -243,13 +243,14 @@
                                             </div>
 
                                             {{-- 詳細コンテンツエリア --}}
+                                            {{-- [修正] max-h-96(最大の高さ)とoverflow-y-auto(縦スクロール)を追加 --}}
                                             <div x-show="open" x-transition:enter="transition ease-out duration-300"
                                                 x-transition:enter-start="opacity-0 transform -translate-y-2"
                                                 x-transition:enter-end="opacity-100 transform translate-y-0"
                                                 x-transition:leave="transition ease-in duration-200"
                                                 x-transition:leave-start="opacity-100 transform translate-y-0"
                                                 x-transition:leave-end="opacity-0 transform -translate-y-2"
-                                                class="border-t border-gray-200 bg-gray-50/70">
+                                                class="border-t border-gray-200 bg-gray-50/70 max-h-96 overflow-y-auto">
                                                 <div class="p-4 sm:p-6 space-y-6">
 
                                                     {{-- スケジュールテーブル --}}
@@ -369,20 +370,21 @@
                                                                                 <div x-data="{ showMapChooser: false }"
                                                                                     class="inline-block relative">
                                                                                     <button type="button" @click="(function(){
-                                                                                                                var ua = navigator.userAgent || navigator.vendor || window.opera;
-                                                                                                                var isIOS = /iPhone|iPad|iPod/.test(ua) && !window.MSStream;
-                                                                                                                var isAndroid = /Android/.test(ua);
-                                                                                                                if (isIOS || isAndroid) {
-                                                                                                                    showMapChooser = !showMapChooser;
-                                                                                                                } else {
-                                                                                                                    window.open('{{ $gmUrl }}', '_blank');
-                                                                                                                }
-                                                                                                            })()"
+                                                                                                                    // iPhone のみ選択肢を表示する。Android は直接 Google Maps を開く。
+                                                                                                                    var ua = navigator.userAgent || navigator.vendor || window.opera;
+                                                                                                                    var isIPhone = /iPhone/.test(ua) && !/iPad/.test(ua);
+                                                                                                                    if (isIPhone) {
+                                                                                                                        showMapChooser = !showMapChooser;
+                                                                                                                    } else {
+                                                                                                                        // iPhone 以外は直接 Google Maps を別タブで開く
+                                                                                                                        window.open('{{ $gmUrl }}', '_blank');
+                                                                                                                    }
+                                                                                                                })()"
                                                                                         class="text-blue-600 hover:underline">{{ $placeName }}</button>
 
                                                                                     <div x-show="showMapChooser" x-cloak
                                                                                         @click.away="showMapChooser = false"
-                                                                                        class="absolute z-50 bg-white border rounded shadow mt-2 right-0 p-2 w-44">
+                                                                                        class="absolute z-50 bg-white border rounded shadow mt-2 left-0 p-2 w-44">
                                                                                         <a href="{{ $gmUrl }}" target="_blank"
                                                                                             rel="noopener noreferrer"
                                                                                             class="block px-2 py-1 text-sm hover:bg-gray-100">Google
@@ -390,9 +392,6 @@
                                                                                         <a href="{{ $appleUrl }}"
                                                                                             class="block px-2 py-1 text-sm hover:bg-gray-100">Apple
                                                                                             Mapsで開く</a>
-                                                                                        <a href="{{ $gmUrl }}" target="_blank"
-                                                                                            rel="noopener noreferrer"
-                                                                                            class="block px-2 py-1 text-sm hover:bg-gray-100">ブラウザで開く</a>
                                                                                     </div>
                                                                                 </div>
                                                                             @else
