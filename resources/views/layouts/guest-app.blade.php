@@ -48,11 +48,11 @@
                                                                                 bg-yellow-100 text-yellow-800
                                                                             @endif">
                                         @if($space->visibility === 2)
-                                            <i class="fa-solid fa-globe mr-1"></i>
-                                            <span class="hidden sm:inline">全体公開</span>
+                                            <i class="fa-solid fa-globe"></i>
+                                            <span class="hidden ml-1 sm:inline">全体公開</span>
                                         @else
-                                            <i class="fa-solid fa-link mr-1"></i>
-                                            <span class="hidden sm:inline">限定公開</span>
+                                            <i class="fa-solid fa-link "></i>
+                                            <span class="hidden ml-1 sm:inline">限定公開</span>
                                         @endif
                                     </span>
                                 </div>
