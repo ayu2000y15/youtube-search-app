@@ -350,7 +350,57 @@
                                                                 <div class="ml-3">
                                                                     <dt class="font-semibold text-gray-800">会場</dt>
                                                                     <dd class="mt-1 text-gray-600 break-words">
-                                                                        {{ $event->venue ?: '情報なし' }}
+                                                                        @php
+                                                                            $venueText = $event->venue ?? '';
+                                                                            // 全角／半角の丸括弧に対応して住所を抽出
+                                                                            $address = null;
+                                                                            if (preg_match('/[\(（]([^\)）]+)[\)）]/u', $venueText, $m)) {
+                                                                                $address = trim($m[1]);
+                                                                            }
+                                                                        @endphp
+                                                                        @if ($venueText)
+                                                                            @if ($address)
+                                                                                @php
+                                                                                    $placeName = trim(preg_replace('/[\(（][^\)）]+[\)）]/u', '', $venueText));
+                                                                                    $placeQuery = $placeName ?: $address;
+                                                                                    $gmUrl = 'https://www.google.com/maps/search/?api=1&query=' . urlencode($placeQuery);
+                                                                                    $appleUrl = 'maps://?q=' . urlencode($placeQuery);
+                                                                                @endphp
+                                                                                <div x-data="{ showMapChooser: false }"
+                                                                                    class="inline-block relative">
+                                                                                    <button type="button" @click="(function(){
+                                                                                                                var ua = navigator.userAgent || navigator.vendor || window.opera;
+                                                                                                                var isIOS = /iPhone|iPad|iPod/.test(ua) && !window.MSStream;
+                                                                                                                var isAndroid = /Android/.test(ua);
+                                                                                                                if (isIOS || isAndroid) {
+                                                                                                                    showMapChooser = !showMapChooser;
+                                                                                                                } else {
+                                                                                                                    window.open('{{ $gmUrl }}', '_blank');
+                                                                                                                }
+                                                                                                            })()"
+                                                                                        class="text-blue-600 hover:underline">{{ $placeName }}</button>
+
+                                                                                    <div x-show="showMapChooser" x-cloak
+                                                                                        @click.away="showMapChooser = false"
+                                                                                        class="absolute z-50 bg-white border rounded shadow mt-2 right-0 p-2 w-44">
+                                                                                        <a href="{{ $gmUrl }}" target="_blank"
+                                                                                            rel="noopener noreferrer"
+                                                                                            class="block px-2 py-1 text-sm hover:bg-gray-100">Google
+                                                                                            Mapsで開く</a>
+                                                                                        <a href="{{ $appleUrl }}"
+                                                                                            class="block px-2 py-1 text-sm hover:bg-gray-100">Apple
+                                                                                            Mapsで開く</a>
+                                                                                        <a href="{{ $gmUrl }}" target="_blank"
+                                                                                            rel="noopener noreferrer"
+                                                                                            class="block px-2 py-1 text-sm hover:bg-gray-100">ブラウザで開く</a>
+                                                                                    </div>
+                                                                                </div>
+                                                                            @else
+                                                                                {{ $venueText }}
+                                                                            @endif
+                                                                        @else
+                                                                            情報なし
+                                                                        @endif
                                                                     </dd>
                                                                 </div>
                                                             </div>
