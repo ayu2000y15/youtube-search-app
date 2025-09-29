@@ -1,7 +1,7 @@
 @extends('layouts.guest-app')
 
 @section('content')
-    <div class="py-8 bg-gray-50">
+    <div class="pb-4 md:py-8 bg-gray-50">
         <style>
             /* ワクワクバッジアニメーション */
             @keyframes gentle-pulse {
