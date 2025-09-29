@@ -30,26 +30,34 @@
 </div>
 
 {{-- 縦軸の動的フォーム (ドラッグ＆ドロップ対応) --}}
-<div class="mt-8 border-t pt-6"
-    x-data='{ "verticalAxes": @json(old("vertical_axes", isset($timeline) ? $timeline->verticalAxes->sortBy("display_order")->values() : [['label' => '', 'id' => null]])) }'>
+{{-- 縦軸の動的フォーム (デバッグコード) --}}
+<div class="mt-8 border-t pt-6" x-data='{
+        "verticalAxes": @json(old("vertical_axes", isset($timeline) ? $timeline->verticalAxes->sortBy("display_order")->values() : [['label' => '', 'id' => null]])),
+        "nextId": 1
+    }' x-init="
+        console.log('1. 初期化直後のデータ:', JSON.parse(JSON.stringify(verticalAxes)));
+
+        verticalAxes.forEach(axis => {
+            if (!axis.id) {
+                axis.temp_id = nextId++;
+            }
+        });
+
+        console.log('2. temp_id割り当て後のデータ:', JSON.parse(JSON.stringify(verticalAxes)));
+    ">
     <h3 class="text-lg font-semibold mb-4">縦軸の定義</h3>
-    {{-- x-sortable と x-model でドラッグ＆ドロップを有効化 --}}
     <div class="space-y-4" x-sortable x-model="verticalAxes">
-        <template x-for="(axis, index) in verticalAxes" :key="axis.id ? 'axis-' + axis.id : 'new-' + index">
-            {{-- x-sortable-item で各項目をアイテムとして定義 --}}
+        <template x-for="(axis, index) in verticalAxes" :key="axis.id || 'new-' + axis.temp_id">
             <div class="flex items-center space-x-2 bg-gray-50 p-2 rounded-md" x-sortable-item>
-                {{-- x-sortable-handle でドラッグハンドルを指定 --}}
                 <div x-sortable-handle class="cursor-move text-gray-400 hover:text-gray-600 pr-2" title="並び替え">
                     <i class="fa-solid fa-grip-vertical"></i>
                 </div>
                 <div class="flex-grow">
-                    <x-input-label ::for="'axis_label_' + index">ラベル</x-input-label>
-                    <x-text-input ::id="'axis_label_' + index" x-model="axis.label"
+                    <x-input-label ::for="'axis_label_' + (axis.id || axis.temp_id)">ラベル</x-input-label>
+                    <x-text-input ::id="'axis_label_' + (axis.id || axis.temp_id)" x-model="axis.label"
                         ::name="'vertical_axes[' + index + '][label]'" type="text" class="mt-1 block w-full"
                         placeholder="例: リリース、ライブ活動" required />
-                    {{-- 既存の軸のID --}}
                     <input type="hidden" :name="'vertical_axes[' + index + '][id]'" x-model="axis.id">
-                    {{-- 並び替え後の順序をインデックスとして送信 --}}
                     <input type="hidden" :name="'vertical_axes[' + index + '][display_order]'" :value="index">
                 </div>
                 <div class="pt-5">
@@ -61,7 +69,7 @@
             </div>
         </template>
     </div>
-    <button type="button" @click="verticalAxes.push({ label: '', id: null })"
+    <button type="button" @click="verticalAxes.push({ id: null, label: '', temp_id: nextId++ })"
         class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
         <i class="fa-solid fa-plus"></i> 縦軸を追加
     </button>

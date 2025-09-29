@@ -36,7 +36,7 @@
                                 <div class="mt-1 flex items-center space-x-4 text-xs text-gray-500">
                                     <span class="flex items-center">
                                         <i class="fa-solid fa-calendar-alt mr-1"></i>
-                                        {{ $video->published_at->format('Y/m/d') }}
+                                        {{ optional($video->published_at)->format('Y/m/d') ?? '' }}
                                     </span>
                                     <span class="flex items-center truncate">
                                         <i class="fa-solid fa-tv mr-1"></i>
@@ -141,7 +141,7 @@
                         <div class="text-xs sm:text-sm text-gray-500 mt-2 sm:mt-3 space-y-1">
                             <p class="flex items-center">
                                 <i class="fa-solid fa-calendar-alt w-3 sm:w-4 mr-1 text-center flex-shrink-0"></i>
-                                <span>{{ $video->published_at->format('Y/m/d H:i') }}</span>
+                                <span>{{ optional($video->published_at)->format('Y/m/d H:i') ?? '' }}</span>
                             </p>
                             <p class="flex items-center truncate">
                                 <i class="fa-solid fa-tv w-3 sm:w-4 mr-1 text-center flex-shrink-0"></i>
@@ -184,8 +184,9 @@
                                     <div class="flex items-center text-xs sm:text-sm text-gray-500">
                                         <i class="fa-solid fa-clock mr-1 flex-shrink-0"></i>
                                         <span class="hidden sm:inline">統計更新:
-                                            {{ $video->statistics_updated_at->format('Y/m/d H:i') }}</span>
-                                        <span class="sm:hidden">{{ $video->statistics_updated_at->format('m/d H:i') }}</span>
+                                            {{ optional($video->statistics_updated_at)->format('Y/m/d H:i') ?? '' }}</span>
+                                        <span
+                                            class="sm:hidden">{{ optional($video->statistics_updated_at)->format('m/d H:i') ?? '' }}</span>
                                     </div>
                                 @endif
                             </div>

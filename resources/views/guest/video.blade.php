@@ -23,7 +23,7 @@
                 </h1>
                 <p class="text-xs text-gray-600 mt-2">
                     <i class="fa-solid fa-tv mr-1"></i>{{ $video->channel->name }} •
-                    {{ $video->published_at->format('Y/m/d') }}
+                    {{ optional($video->published_at)->format('Y/m/d') ?? '' }}
                 </p>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -343,7 +343,7 @@
         // 字幕データを配列として準備
         const dialogues = [
             @foreach($dialogues as $dialogue)
-                                                                                                                                {
+                                                                                                                                        {
                     id: {{ $dialogue->id }},
                     timestamp: {{ $dialogue->timestamp }},
                     endTime: {{ $dialogue->timestamp + 5 }}, // 仮で5秒後を終了時刻とする（実際の終了時刻があれば使用）
@@ -351,7 +351,7 @@
                     text: @json($dialogue->dialogue)
                 },
             @endforeach
-                                                                ];
+                                                                    ];
 
         // YouTube Player APIが読み込まれた時の初期化
         function onYouTubeIframeAPIReady() {

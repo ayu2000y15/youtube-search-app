@@ -101,7 +101,7 @@
                                         <div class="flex items-center text-sm text-gray-600">
                                             <i class="fa-solid fa-calendar-alt w-5 mr-2 text-center text-gray-400"></i>
                                             <span class="font-medium mr-2">公開日:</span>
-                                            <span>{{ $video->published_at->format('Y年m月d日 H:i') }}</span>
+                                            <span>{{ optional($video->published_at)->format('Y年m月d日 H:i') ?? '' }}</span>
                                         </div>
 
                                         <div class="flex items-center text-sm text-gray-600">
@@ -145,7 +145,7 @@
                                             <div class="flex items-center text-sm text-gray-500">
                                                 <i class="fa-solid fa-clock w-5 mr-2 text-center text-gray-400"></i>
                                                 <span class="font-medium mr-2">統計更新:</span>
-                                                <span class="text-xs">{{ $video->statistics_updated_at->format('Y/m/d H:i') }}</span>
+                                                <span class="text-xs">{{ optional($video->statistics_updated_at)->format('Y/m/d H:i') ?? '' }}</span>
                                             </div>
                                         @endif
                                     </div>

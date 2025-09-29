@@ -40,7 +40,7 @@
                 <div class="p-6 bg-white border-b border-gray-200">
                     <form method="POST" action="{{ route('spaces.events.update', [$space, $event]) }}">
                         @method('PUT')
-                        @include('events._form')
+                        @include('events._form', ['categories' => $categories])
 
                         <div class="flex items-center justify-end mt-4">
                             <x-primary-button class="ml-4">

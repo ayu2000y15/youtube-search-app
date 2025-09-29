@@ -7,6 +7,7 @@ use App\Models\Event;
 use App\Models\Space; // Spaceモデルを使用
 use Illuminate\Support\Facades\DB; // DBトランザクションのため
 use Illuminate\Support\Facades\Log; // エラーログのため
+use App\Models\EventCategory;
 
 class EventController extends Controller
 {
@@ -17,8 +18,9 @@ class EventController extends Controller
      */
     public function create(Space $space)
     {
-        // space_id を渡して登録フォームビューを返す
-        return view('events.create', compact('space'));
+        // カテゴリ一覧を取得してビューに渡す
+        $categories = EventCategory::orderBy('display_order')->get();
+        return view('events.create', compact('space', 'categories'));
     }
 
     /**
@@ -32,15 +34,8 @@ class EventController extends Controller
         try {
             DB::transaction(function () use ($validated, $space) {
                 // 1. イベント本体を登録
-                $event = $space->events()->create([
-                    'name' => $validated['name'],
-                    'venue' => $validated['venue'],
-                    'performers' => $validated['performers'],
-                    'price_info' => $validated['price_info'],
-                    'description' => $validated['description'],
-                    'event_url' => $validated['event_url'],
-                    'internal_memo' => $validated['internal_memo'],
-                ]);
+                // $validated を直接渡すことで、fillableな項目が全て一度に保存される
+                $event = $space->events()->create($validated);
 
                 // 2. 開催日時を登録
                 if (!empty($validated['schedules'])) {
@@ -78,7 +73,9 @@ class EventController extends Controller
 
         // 元のschedules情報を、ビュー表示用にフォーマットしたもので上書きする
         $event->schedules = $schedulesForView;
-        return view('events.edit', compact('space', 'event'));
+
+        $categories = EventCategory::orderBy('display_order')->get();
+        return view('events.edit', compact('space', 'event', 'categories'));
     }
 
     /**
@@ -91,15 +88,7 @@ class EventController extends Controller
         try {
             DB::transaction(function () use ($validated, $event) {
                 // 1. イベント本体を更新
-                $event->update([
-                    'name'          => $validated['name'],
-                    'venue' => $validated['venue'],
-                    'performers'    => $validated['performers'],
-                    'price_info'    => $validated['price_info'],
-                    'description'   => $validated['description'],
-                    'event_url'     => $validated['event_url'],
-                    'internal_memo' => $validated['internal_memo'],
-                ]);
+                $event->update($validated);
 
                 // 2. 関連する開催日時・チケット情報を一旦全て削除して、再登録する
                 $event->schedules()->delete();

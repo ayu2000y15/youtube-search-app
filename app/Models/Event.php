@@ -18,6 +18,7 @@ class Event extends Model
      */
     protected $fillable = [
         'space_id',
+        'event_category_id',
         'name',
         'venue',
         'performers',
@@ -49,5 +50,13 @@ class Event extends Model
     public function ticketSales(): HasMany
     {
         return $this->hasMany(TicketSale::class);
+    }
+
+    /**
+     * このイベントが属するカテゴリを取得
+     */
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(EventCategory::class, 'event_category_id');
     }
 }

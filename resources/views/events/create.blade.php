@@ -39,7 +39,7 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 bg-white border-b border-gray-200">
                     <form method="POST" action="{{ route('spaces.events.store', $space) }}">
-                        @include('events._form', ['event' => new \App\Models\Event])
+                        @include('events._form', ['event' => new \App\Models\Event, 'categories' => $categories])
 
                         <div class="flex items-center justify-end mt-4">
                             <x-primary-button class="ml-4">

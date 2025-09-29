@@ -77,7 +77,7 @@
         <div id="search-panel"
             class="fixed top-16 left-0 right-0 bg-white border-b border-gray-200 shadow-lg z-40 transform -translate-y-full transition-all duration-300 ease-in-out"
             style="display: none;">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:max-h-full max-h-96 overflow-y-auto">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:max-h-full max-h-120 overflow-y-auto">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-semibold text-gray-900">
                         <i class="fa-solid fa-search mr-2"></i>詳細検索

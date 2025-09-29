@@ -10,6 +10,7 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\HistoryCategoryController;
 use App\Http\Controllers\HistoryEntryController;
+use App\Http\Controllers\EventCategoryController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -57,6 +58,9 @@ Route::middleware('auth')->group(function () {
 
     // 年表項目管理 (年表に紐づく)
     Route::resource('timelines.history-entries', HistoryEntryController::class)->shallow()->except(['index']);
+
+    Route::resource('event-categories', EventCategoryController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::post('event-categories/reorder', [EventCategoryController::class, 'reorder'])->name('event-categories.reorder');
 });
 
 // ゲスト用ルート（認証不要）
@@ -64,6 +68,9 @@ use App\Http\Controllers\GuestController;
 
 // 全体公開スペース表示（slug使用）
 Route::get('/public/{space:slug}', [GuestController::class, 'showPublicSpace'])->name('guest.space.public')->where('space', '[a-zA-Z0-9\-]+');
+
+// ゲスト向け：コンテンツ情報（イベント一覧・年表）表示（全体公開）
+Route::get('/public/{space:slug}/content', [GuestController::class, 'showPublicContent'])->name('guest.space.content.public')->where('space', '[a-zA-Z0-9\-]+');
 
 // 動画詳細（全体公開）
 Route::get('/public/{space:slug}/video/{video}', [GuestController::class, 'showVideo'])->name('guest.video.public')->where(['space' => '[a-zA-Z0-9\-]+']);
@@ -76,6 +83,9 @@ Route::get('/public/{space:slug}/videos/load-more', [GuestController::class, 'lo
 
 // 限定公開スペース表示（slug + invite_token使用）- 管理画面のルートと衝突しないよう、より具体的なパターンに変更
 Route::get('/invite/{space:slug}/{token}', [GuestController::class, 'showInviteSpace'])->name('guest.space.invite')->where(['space' => '[a-zA-Z0-9\-]+', 'token' => '[a-zA-Z0-9]+']);
+
+// ゲスト向け：コンテンツ情報（イベント一覧・年表）表示（限定公開）
+Route::get('/invite/{space:slug}/{token}/content', [GuestController::class, 'showInviteContent'])->name('guest.space.content.invite')->where(['space' => '[a-zA-Z0-9\-]+', 'token' => '[a-zA-Z0-9]+']);
 
 // 動画詳細（限定公開）
 Route::get('/invite/{space:slug}/{token}/video/{video}', [GuestController::class, 'showVideo'])->name('guest.video.invite')->where(['space' => '[a-zA-Z0-9\-]+', 'token' => '[a-zA-Z0-9]+']);

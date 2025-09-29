@@ -180,6 +180,70 @@ class GuestController extends Controller
         return view('guest.search', compact('space', 'query', 'results', 'spaceIdentifier'));
     }
 
+    // app/Http/Controllers/GuestController.php
+
+    /**
+     * ゲスト向けコンテンツ情報（イベント一覧・年表）表示（全体公開）
+     */
+    public function showPublicContent(Request $request, Space $space)
+    {
+        if ($space->visibility !== 2) {
+            abort(404);
+        }
+
+        // イベントごとの最新の公演日(performance_date)を取得して、その最大値で降順ソートする
+        $events = $space->events()
+            ->with(['schedules', 'ticketSales', 'category'])
+            ->withMax('schedules', 'performance_date')
+            // withMax によって生成される alias は `relation_max_column` 形式になります
+            ->orderByDesc('schedules_max_performance_date')
+            ->get();
+        $timelines = $space->timelines()->orderBy('id', 'desc')->get();
+
+        // 各年表に、カテゴリでグループ分けした項目データを追加する
+        $timelines->each(function ($timeline) {
+            $entries = $timeline->historyEntries()
+                ->with(['category', 'verticalAxis'])
+                ->get()
+                ->sortBy(fn($entry) => $entry->axis_type === 'date' ? $entry->axis_date : $entry->axis_custom_value);
+
+            $timeline->groupedEntries = $entries->groupBy('category.name');
+        });
+
+        return view('guest.content', compact('space', 'events', 'timelines'));
+    }
+
+    /**
+     * ゲスト向けコンテンツ情報（イベント一覧・年表）表示（限定公開）
+     */
+    public function showInviteContent(Request $request, Space $space, $token)
+    {
+        if ($space->invite_token !== $token || $space->visibility !== 1) {
+            abort(404);
+        }
+
+        // イベントごとの最新の公演日(performance_date)を取得して、その最大値で降順ソートする
+        $events = $space->events()
+            ->with(['schedules', 'ticketSales', 'category'])
+            ->withMax('schedules', 'performance_date')
+            // withMax によって生成される alias は `relation_max_column` 形式になります
+            ->orderByDesc('schedules_max_performance_date')
+            ->get();
+        $timelines = $space->timelines()->orderBy('id', 'desc')->get();
+
+        // 各年表に、カテゴリでグループ分けした項目データを追加する
+        $timelines->each(function ($timeline) {
+            $entries = $timeline->historyEntries()
+                ->with(['category', 'verticalAxis'])
+                ->get()
+                ->sortBy(fn($entry) => $entry->axis_type === 'date' ? $entry->axis_date : $entry->axis_custom_value);
+
+            $timeline->groupedEntries = $entries->groupBy('category.name');
+        });
+
+        return view('guest.content', compact('space', 'events', 'timelines'));
+    }
+
     /**
      * 動画一覧の追加読み込み（全体公開用）
      */

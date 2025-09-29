@@ -30,10 +30,18 @@
                 <div class="p-6 text-gray-900">
                     <div class="flex justify-between items-center border-b pb-2 mb-4">
                         <h3 class="text-xl font-bold">イベント一覧</h3>
-                        <x-button-link-primary href="{{ route('spaces.events.create', $space) }}">
-                            <i class="fa-solid fa-plus"></i>
-                            <span class="hidden ml-2 sm:inline">イベントを新規登録</span>
-                        </x-button-link-primary>
+                        <div class="flex items-center space-x-2">
+                            {{-- カテゴリ管理ボタンを追加 --}}
+                            <x-button-link-secondary href="{{ route('event-categories.index') }}">
+                                <i class="fa-solid fa-tags"></i>
+                                <span class="hidden ml-2 sm:inline">カテゴリ管理</span>
+                            </x-button-link-secondary>
+                            {{-- イベント新規登録ボタン --}}
+                            <x-button-link-primary href="{{ route('spaces.events.create', $space) }}">
+                                <i class="fa-solid fa-plus"></i>
+                                <span class="hidden ml-2 sm:inline">イベントを新規登録</span>
+                            </x-button-link-primary>
+                        </div>
                     </div>
 
                     @forelse ($space->events as $event)
@@ -63,14 +71,25 @@
                                             $dateClass = $firstDate ? ($isFuture ? 'text-blue-600' : 'text-gray-500') : 'text-gray-400';
                                             $titleClass = $isFuture ? 'text-gray-900' : 'text-gray-600';
                                         @endphp
-                                        <span
-                                            class="ml-2 text-lg font-semibold {{ $titleClass }} flex flex-col sm:flex-row sm:items-center">
+                                        <div class="ml-2 flex items-center">
+                                            {{-- 日付 --}}
                                             @if ($firstDate)
                                                 <span
-                                                    class="text-sm {{ $dateClass }} mb-1 sm:mb-0 sm:mr-3 text-left">{{ \Carbon\Carbon::parse($firstDate)->locale('ja')->isoFormat('YYYY/MM/DD (ddd)') }}</span>
+                                                    class="text-xs md:text-sm {{ $dateClass }} mr-3 text-left w-32 flex-shrink-0">{{ \Carbon\Carbon::parse($firstDate)->locale('ja')->isoFormat('YYYY/MM/DD (ddd)') }}</span>
+                                            @else
+                                                <span class="w-32 mr-3 flex-shrink-0"></span>
                                             @endif
-                                            <span class="text-left">{{ $event->name }}</span>
-                                        </span>
+
+                                            {{-- カテゴリとイベント名のコンテナ --}}
+                                            <div class="flex flex-col items-start">
+                                                @if($event->category)
+                                                    <span class="text-xs font-semibold mb-1 px-2 py-0.5 rounded-full text-white" style="background-color: {{ $event->category->color }};">
+                                                        {{ $event->category->name }}
+                                                    </span>
+                                                @endif
+                                                <span class="text-sm md:text-base text-left font-semibold {{ $titleClass }}">{{ $event->name }}</span>
+                                            </div>
+                                        </div>
                                     </button>
                                 </div>
                                 <div class="flex items-center space-x-2 mt-2 sm:mt-0 justify-end sm:justify-start self-end sm:self-auto"
@@ -100,7 +119,6 @@
                                             <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                                                 <tr>
                                                     <th scope="col" class="py-3 px-6">公演名</th>
-                                                    <th scope="col" class="py-3 px-6">公演日</th>
                                                     <th scope="col" class="py-3 px-6">開場</th>
                                                     <th scope="col" class="py-3 px-6">開演</th>
                                                     <th scope="col" class="py-3 px-6">終演</th>
@@ -111,9 +129,6 @@
                                                     <tr class="bg-white border-b">
                                                         <td class="py-4 px-6 font-medium text-gray-900">
                                                             {{ $schedule->session_name ?? '-' }}
-                                                        </td>
-                                                        <td class="py-4 px-6">
-                                                            {{ $schedule->performance_date ? $schedule->performance_date->locale('ja')->isoFormat('YYYY/MM/DD (ddd)') : '-' }}
                                                         </td>
                                                         <td class="py-4 px-6">
                                                             {{ $schedule->doors_open_time ? \Carbon\Carbon::parse($schedule->doors_open_time)->format('H:i') : '-' }}
@@ -167,7 +182,7 @@
                                                     </div>
                                                     @if ($sale->notes)
                                                         <div class="mt-2 pt-2 border-t">
-                                                            <p class="text-xs text-gray-600 whitespace-pre-line">
+                                                            <p class="text-xs text-gray-600 ">
                                                                 {{ $sale->notes }}</p>
                                                         </div>
                                                     @endif
@@ -178,24 +193,34 @@
                                 @endif
 
                                 <div class="my-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                                    <div><strong>会場:</strong> {{ $event->venue ?? '情報なし' }}</div>
-                                    <div><strong>公式サイト:</strong>
-                                        @if ($event->event_url)
-                                            <a href="{{ $event->event_url }}" target="_blank"
-                                                class="text-blue-600 hover:underline">
-                                                {{ $event->name }}
-                                            </a>
+                                        @if (empty($event->venue))
+                                            <div><strong>会場:</strong> 情報なし</div>
                                         @else
-                                            情報なし
+                                            <div>
+                                                <div class="font-semibold"><strong>会場:</strong></div>
+                                                <div class="text-gray-700 break-words ">
+                                                    {{ $event->venue }}</div>
+                                            </div>
                                         @endif
-                                    </div>
+
+                                    @if (empty($event->event_url))
+                                        <div><strong>公式サイト:</strong> 情報なし</div>
+                                    @else
+                                        <div>
+                                            <div class="font-semibold"><strong>公式サイト:</strong></div>
+                                            <a href="{{ $event->event_url }}" target="_blank" class="text-blue-600 hover:underline">
+                                                {{ $event->event_url }}
+                                            </a>
+                                        </div>
+                                    @endif
+
                                     @if (empty($event->performers))
                                         <div><strong>出演:</strong> 情報なし</div>
                                     @else
                                         <div>
                                             <div class="font-semibold"><strong>出演:</strong></div>
-                                            <div class="text-gray-700 break-words whitespace-pre-line">
-                                                {{ $event->performers }}</div>
+                                            <div class="text-gray-700 break-words ">
+                                                {!! nl2br(e($event->performers)) !!}</div>
                                         </div>
                                     @endif
 
@@ -204,26 +229,28 @@
                                     @else
                                         <div>
                                             <div class="font-semibold"><strong>料金:</strong></div>
-                                            <div class="text-gray-700 break-words whitespace-pre-line">
-                                                {{ $event->price_info }}</div>
+                                            <div class="text-gray-700 break-words ">
+                                                {!! nl2br(e($event->price_info)) !!}</div>
                                         </div>
                                     @endif
+
                                     @if (empty($event->description))
                                         <div><strong>内容:</strong> 情報なし</div>
                                     @else
                                         <div>
                                             <div class="font-semibold"><strong>内容:</strong></div>
-                                            <div class="text-gray-700 break-words whitespace-pre-line">
-                                                {{ $event->description }}</div>
+                                            <div class="text-gray-700 break-words ">
+                                                {!! nl2br(e($event->description)) !!}</div>
                                         </div>
                                     @endif
-                                    @if (empty($event->internal_memo))
+
+                                    @if (empty($event->memo))
                                         <div><strong>内部メモ:</strong> 情報なし</div>
                                     @else
                                         <div>
                                             <div class="font-semibold"><strong>内部メモ:</strong></div>
-                                            <div class="text-gray-700 break-words whitespace-pre-line">
-                                                {{ $event->internal_memo }}</div>
+                                            <div class="text-gray-700 break-words ">
+                                                {!! nl2br(e($event->memo)) !!}</div>
                                         </div>
                                     @endif
                                 </div>

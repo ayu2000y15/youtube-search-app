@@ -256,7 +256,7 @@ class SpaceController extends Controller
         $space->load('events.schedules', 'events.ticketSales', 'timelines');
 
         // イベントを最も早い公演日の昇順でソートする
-        $space->events = $space->events->sortBy(function ($event) {
+        $space->events = $space->events->sortByDesc(function ($event) {
             // schedules の performance_date を集めて最小値（timestamp）を返す
             $dates = $event->schedules->pluck('performance_date')->filter();
             if ($dates->isEmpty()) {

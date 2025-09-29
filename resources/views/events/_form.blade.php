@@ -21,6 +21,18 @@
             <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name', $event->name ?? '')" required autofocus />
         </div>
         <div>
+            <label for="event_category_id" class="block font-medium text-sm text-gray-700">イベントカテゴリ</label>
+            <select id="event_category_id" name="event_category_id"
+                class="mt-1 block w-full rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                <option value="">カテゴリなし</option>
+                @foreach($categories as $category)
+                    <option value="{{ $category->id }}" @selected(old('event_category_id', $event->event_category_id ?? '') == $category->id)>
+                        {{ $category->name }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+        <div>
             <label for="venue" class="block font-medium text-sm text-gray-700">会場</label>
             <x-text-input id="venue" class="block mt-1 w-full" type="text" name="venue" :value="old('venue', $event->venue ?? '')" />
         </div>

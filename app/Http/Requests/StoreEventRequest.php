@@ -24,6 +24,7 @@ class StoreEventRequest extends FormRequest
     {
         return [
             // イベント基本情報
+            'event_category_id' => 'nullable|integer|exists:event_categories,id',
             'name' => 'required|string|max:255',
             'venue' => 'nullable|string|max:255',
             'performers' => 'nullable|string',
@@ -78,6 +79,7 @@ class StoreEventRequest extends FormRequest
     public function attributes(): array
     {
         return [
+            'event_category_id' => 'イベントカテゴリ',
             'name' => 'イベント名',
             'venue' => '会場',
             'performers' => '出演',
